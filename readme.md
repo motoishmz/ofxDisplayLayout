@@ -1,4 +1,4 @@
-## ofxDisplayLayout grabs the Display unique IDs, and aligns your displays vertically/horizontally
+## ofxDisplayLayout grabs the display unique ID, and aligns your displays vertically/horizontally
 
 	!!!: This addon supports only Mac OS.
 	!!!: Less than OF 0.9.0 is not supported since this addon uses C++11 features.
