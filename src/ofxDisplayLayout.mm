@@ -11,7 +11,7 @@
 
 ofxDisplayLayout::ofxDisplayLayout() {
 #ifndef TARGET_OSX
-	ofSystemAlertDialog("Sorry! ofxDisplayLayout supports only MacOS only.");
+	ofSystemAlertDialog("Sorry! ofxDisplayLayout supports only MacOS.");
 #endif
 }
 
@@ -29,9 +29,9 @@ bool ofxDisplayLayout::save(string filepath) const {
 		return false;
 	}
 	
-	
+
 	/*!
-	 writing to tile
+	 creating reports
 	 */
 	stringstream stream;
 	
@@ -59,6 +59,7 @@ bool ofxDisplayLayout::save(string filepath) const {
 			 end(display_ids),
 			 create_report);
 	
+	
 	/*!
 	 writing to tile
 	 */
@@ -84,6 +85,7 @@ bool ofxDisplayLayout::load(string filepath, AlignmentDirection direction) const
 		return false;
 	}
 	
+	
 	/*!
 		reading valid display id
 	 */
@@ -107,6 +109,7 @@ bool ofxDisplayLayout::load(string filepath, AlignmentDirection direction) const
 		
 		display_ids.emplace_back(display_id);
 	}
+	
 	
 	/*!
 		arrange
@@ -145,8 +148,7 @@ void ofxDisplayLayout::debugDraw(int x, int y, float scale) {
 		}
 		
 		ofSetColor(255);
-		ofDrawBitmapString(ofToString(display_id),
-						   rect.getPosition() * scale + 20);
+		ofDrawBitmapString(ofToString(display_id), rect.getPosition()*scale+20);
 	};
 	
 	const vector<unsigned int> display_ids = getDisplayIds();
@@ -224,7 +226,7 @@ bool ofxDisplayLayout::arrange(vector<unsigned int> display_ids, AlignmentDirect
 	
 	
 	/*!
-	 estimating the new origin for each display
+		estimating the new origin for each display
 	 */
 	struct Display {
 		

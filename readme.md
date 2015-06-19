@@ -29,9 +29,9 @@ ofxDisplayLayout::*ALIGN_VERTICAL*
 
 
 ## Demo movie
-[https://instagram.com/p/4GhGW0LMyA/](https://instagram.com/p/4GhGW0LMyA/)
-[https://instagram.com/p/4GhVAjrMyL/](https://instagram.com/p/4GhVAjrMyL/)
-[https://instagram.com/p/4GhyxgrMyw/](https://instagram.com/p/4GhyxgrMyw/)
+- [https://instagram.com/p/4GhGW0LMyA/](https://instagram.com/p/4GhGW0LMyA/)
+- [https://instagram.com/p/4GhVAjrMyL/](https://instagram.com/p/4GhVAjrMyL/)
+- [https://instagram.com/p/4GhyxgrMyw/](https://instagram.com/p/4GhyxgrMyw/)
 
 
 ## Testers needed!
