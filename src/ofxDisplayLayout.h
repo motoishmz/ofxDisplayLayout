@@ -19,16 +19,24 @@ public:
 	ofxDisplayLayout();
 	bool save(string filepath = "display.txt") const;
 	bool load(string filepath = "display.txt", AlignmentDirection direction = ALIGN_HORIZONTAL) const;
-	void debugDraw(int x, int y, float scale = 0.1);
+	
+    bool save2(string filepath = "display.txt") const;
+    bool load2(string filepath = "display.txt", AlignmentDirection direction = ALIGN_HORIZONTAL) const;
+
+    
+    void debugDraw(int x, int y, float scale = 0.1);
 	
 private:
 	
 	bool arrange(vector<unsigned int> display_ids, AlignmentDirection direction) const;
-	
+    bool setResAndOrigin(vector<unsigned int> display_ids, vector<ofRectangle> display_rects) const;
+    
 	bool isMainDisplay(unsigned int display_id) const;
 	bool hasDisplay(unsigned int display_id) const;
 	ofRectangle getDisplayBounds(unsigned int display_id) const;
 	vector<unsigned int> getDisplayIds() const;
 	size_t getNumDisplay() const;
+    
+    CGDisplayModeRef getDisplayMode(unsigned int _id, int _w, int _h) const;
 };
 
