@@ -15,7 +15,8 @@ ofxDisplayLayout::ofxDisplayLayout() {
 #endif
 }
 
-bool ofxDisplayLayout::save(string filepath) const {
+bool ofxDisplayLayout::save(string filepath,
+                            ofxDisplayLayout::Direction direction) const {
 	
 	/*!
 		getting display ids
@@ -28,37 +29,57 @@ bool ofxDisplayLayout::save(string filepath) const {
 		ofLogError() << "you don't need to arange display layout. aborted" << endl;
 		return false;
 	}
+  
+  
+  /*!
+    sorting display order by alignment direction
+   */
+	if (!isValidDirection(direction)) {
+		ofLogError() << __PRETTY_FUNCTION__ << " invalid direction " << direction << "is passed. aborted";
+		return false;
+	}
+	
+	struct Display { unsigned int id; ofRectangle bounds; };
+	vector<Display> displays;
+	for (const auto & display_id: display_ids) {
+		Display display;
+		display.id = display_id;
+		display.bounds = getDisplayBounds(display_id);
+		displays.emplace_back(display);
+	}
+	
+	std::sort(begin(displays),
+						end(displays),
+						[&](Display & lhs, Display & rhs){
+							assert(direction == ALIGN_VERTICAL || direction == ALIGN_HORIZONTAL);
+							return (direction == ALIGN_HORIZONTAL)
+								? (lhs.bounds.x < rhs.bounds.x)
+								: (lhs.bounds.y < rhs.bounds.y);
+						});
 	
 
 	/*!
 	 creating reports
 	 */
 	stringstream stream;
-	
-	auto create_report = [this, &stream]
-						 (unsigned int display_id)
-	{
-		const ofRectangle bounds = getDisplayBounds(display_id);
-		
-		stringstream report;
-		report << "[" << (isMainDisplay(display_id) ? "Main" : "Sub") << " Display]" << endl;
-		report << "display id: " << display_id << endl;
-		report << "display bounds: {"
-			<< "x:" << bounds.x
-			<< ", y:" << bounds.y
-			<< ", w:" << bounds.width
-			<< ", h:" << bounds.height
-			<< "}" << endl;
-		
-		ofLogVerbose() << report.str();
-		
-		stream << display_id << endl;
-	};
-	
-	for_each(begin(display_ids),
-			 end(display_ids),
-			 create_report);
-	
+
+	std::for_each(begin(displays),
+								end(displays),
+								[this, &stream](Display & display){
+									stringstream report;
+									report << "[" << (isMainDisplay(display.id) ? "Main" : "Sub") << " Display]" << endl;
+									report << "display id: " << display.id << endl;
+									report << "display bounds: {"
+									<< "x:" << display.bounds.x
+									<< ", y:" << display.bounds.y
+									<< ", w:" << display.bounds.width
+									<< ", h:" << display.bounds.height
+									<< "}" << endl;
+									
+									ofLogVerbose() << report.str();
+									
+									stream << display.id << endl; // storing only display id
+								});
 	
 	/*!
 	 writing to tile
@@ -75,7 +96,8 @@ bool ofxDisplayLayout::save(string filepath) const {
 	return true;
 }
 
-bool ofxDisplayLayout::load(string filepath, AlignmentDirection direction) const {
+bool ofxDisplayLayout::load(string filepath,
+                            ofxDisplayLayout::Direction direction) const {
 	
 	/*!
 		file check
@@ -85,6 +107,13 @@ bool ofxDisplayLayout::load(string filepath, AlignmentDirection direction) const
 		return false;
 	}
 	
+	/*!
+		direction check
+	 */
+	if (!isValidDirection(direction)) {
+		ofLogError() << __PRETTY_FUNCTION__ << " invalid direction " << direction << "is passed. aborted";
+		return false;
+	}
 	
 	/*!
 		reading valid display id
@@ -165,6 +194,10 @@ void ofxDisplayLayout::debugDraw(int x, int y, float scale) {
 #pragma mark -
 #pragma mark private
 
+bool ofxDisplayLayout::isValidDirection(ofxDisplayLayout::Direction direction) const {
+	return UNKNOWN_DIRECTION < direction || direction < NUM_DIRECTIONS;
+}
+
 bool ofxDisplayLayout::isMainDisplay(unsigned int display_id) const {
 	return CGMainDisplayID() == display_id;
 }
@@ -214,16 +247,15 @@ size_t ofxDisplayLayout::getNumDisplay() const {
 	return getDisplayIds().size();
 }
 
-bool ofxDisplayLayout::arrange(vector<unsigned int> display_ids, AlignmentDirection direction) const {
+// see also: Quartz Display Services Reference
+// https://developer.apple.com/library/mac/documentation/GraphicsImaging/Reference/Quartz_Services_Ref/index.html
+bool ofxDisplayLayout::arrange(vector<unsigned int> display_ids,
+                               ofxDisplayLayout::Direction direction) const {
 	
-	// see also: Quartz Display Services Reference
-	// https://developer.apple.com/library/mac/documentation/GraphicsImaging/Reference/Quartz_Services_Ref/index.html
-	
-	if (direction >= NUM_ALIGNMENT_TYPES) {
-		ofLogError() << "unknown alignment type. aborted";
+	if (!isValidDirection(direction)) {
+		ofLogError() << __PRETTY_FUNCTION__ << " invalid direction " << direction << "is passed. aborted";
 		return false;
 	}
-	
 	
 	/*!
 		estimating the new origin for each display

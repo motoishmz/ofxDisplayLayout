@@ -28,16 +28,13 @@ public:
 	}
 	
 	void keyPressed(int key) {
-		
 		if (key == 's') {
-			manager.save();
+			manager.save("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL); // horizontal
+			// manager.save("display.txt", ofxDisplayLayout::ALIGN_VERTICAL); // vertical
 		}
 		if (key == 'l') {
-			// horizontal
-			manager.load("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL);
-			
-			// vertical
-			// manager.load("display.txt", ofxDisplayLayout::ALIGN_VERTICAL);
+			manager.load("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL); // horizontal
+			// manager.load("display.txt", ofxDisplayLayout::ALIGN_VERTICAL); // vertical
 		}
 	}
 };
