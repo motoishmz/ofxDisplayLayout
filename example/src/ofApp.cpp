@@ -13,10 +13,6 @@ public:
 		ofSetLogLevel(OF_LOG_VERBOSE);
 	}
 	
-	void update() {
-		
-	}
-	
 	void draw() {
 		
 		stringstream report;
@@ -28,13 +24,18 @@ public:
 	}
 	
 	void keyPressed(int key) {
+    
+		// use ofxDisplayLayout::ALIGN_HORIZONTAL or ofxDisplayLayout::ALIGN_VERTICAL
+    
 		if (key == 's') {
-			manager.save("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL); // horizontal
-			// manager.save("display.txt", ofxDisplayLayout::ALIGN_VERTICAL); // vertical
+			if (!manager.save("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL)) {
+				ofSystemAlertDialog("save failed.");
+			};
 		}
 		if (key == 'l') {
-			manager.load("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL); // horizontal
-			// manager.load("display.txt", ofxDisplayLayout::ALIGN_VERTICAL); // vertical
+			if (!manager.load("display.txt", ofxDisplayLayout::ALIGN_HORIZONTAL)) {
+				ofSystemAlertDialog("load failed.");
+			};
 		}
 	}
 };
