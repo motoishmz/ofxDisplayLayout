@@ -9,19 +9,11 @@
 #pragma mark -
 #pragma mark public
 
-ofxDisplayLayout::ofxDisplayLayout() {
-#ifndef TARGET_OSX
-  ofSystemAlertDialog("Sorry! ofxDisplayLayout supports only MacOS.");
-#endif
-}
 
-bool ofxDisplayLayout::save(string filepath,
+bool ofxDisplayLayout::save(std::string filepath,
                             ofxDisplayLayout::Direction direction) const {
   
-  /*!
-    getting display ids
-   */
-  const vector<unsigned int> display_ids = getDisplayIds();
+  const std::vector<unsigned int> display_ids = getDisplayIds();
   
   ofLogVerbose() << "ofxDisplayLayout found " << display_ids.size() << " displays." << endl;
   
@@ -30,17 +22,14 @@ bool ofxDisplayLayout::save(string filepath,
     return false;
   }
   
-  
-  /*!
-    sorting display order by alignment direction
-   */
+  //! sorting display order by alignment direction
   if (!isValidDirection(direction)) {
     ofLogError() << __PRETTY_FUNCTION__ << " invalid direction " << direction << "is passed. aborted";
     return false;
   }
   
   struct Display { unsigned int id; ofRectangle bounds; };
-  vector<Display> displays;
+  std::vector<Display> displays;
   for (const auto & display_id: display_ids) {
     Display display;
     display.id = display_id;
@@ -58,15 +47,12 @@ bool ofxDisplayLayout::save(string filepath,
             });
   
 
-  /*!
-   creating reports
-   */
-  stringstream stream;
-
+  //! creating reports
+  std::ostringstream stream;
   std::for_each(begin(displays),
                 end(displays),
                 [this, &stream](Display & display){
-                  stringstream report;
+                  std::ostringstream report;
                   report << "[" << (isMainDisplay(display.id) ? "Main" : "Sub") << " Display]" << endl;
                   report << "display id: " << display.id << endl;
                   report << "display bounds: {"
@@ -81,9 +67,7 @@ bool ofxDisplayLayout::save(string filepath,
                   stream << display.id << endl; // storing only display id
                 });
   
-  /*!
-   writing to tile
-   */
+  //! writing to tile
   ofLogVerbose() << "start saving current monitor order...";
   
   ofBuffer buf(stream.str());
@@ -96,40 +80,34 @@ bool ofxDisplayLayout::save(string filepath,
   return true;
 }
 
-bool ofxDisplayLayout::load(string filepath,
+bool ofxDisplayLayout::load(std::string filepath,
                             ofxDisplayLayout::Direction direction) const {
   
-  /*!
-    file check
-   */
+  //! file check
   if (!ofFile::doesFileExist(filepath)) {
     ofLogVerbose() << filepath << " doesn't exist. aborted" << endl;
     return false;
   }
   
-  /*!
-    direction check
-   */
+  //! direction check
   if (!isValidDirection(direction)) {
     ofLogError() << __PRETTY_FUNCTION__ << " invalid direction " << direction << "is passed. aborted";
     return false;
   }
   
-  /*!
-    reading valid display id
-   */
-  vector<unsigned int> display_ids;
+  //! reading valid display id
+  std::vector<unsigned int> display_ids;
   
   ofBuffer buf = ofBufferFromFile(filepath);
   ofBuffer::Lines lines = buf.getLines();
   
   for (ofBuffer::Line l = lines.begin(); l != lines.end(); ++l) {
     
-    const string linestr = l.asString();
+    const std::string linestr = ofTrim(l.asString());
     
     if (linestr.empty()) continue;
     
-    const unsigned int display_id = stoul(linestr);
+    const unsigned int display_id = std::stoul(linestr);
     
     if (hasDisplay(display_id) == false) {
       ofLogVerbose() << "Aborted. couldn't found the display : " << display_id;
@@ -139,19 +117,13 @@ bool ofxDisplayLayout::load(string filepath,
     display_ids.emplace_back(display_id);
   }
   
-  
-  /*!
-    arrange
-   */
   return arrange(display_ids, direction);
 }
 
 
 void ofxDisplayLayout::debugDraw(int x, int y, float scale) {
   
-  auto draw = [this, &scale]
-        (unsigned int display_id)
-  {
+  auto draw = [this, &scale](unsigned int display_id) {
     ofRectangle rect = getDisplayBounds(display_id);
     
     ofPushMatrix();
@@ -169,57 +141,32 @@ void ofxDisplayLayout::debugDraw(int x, int y, float scale) {
     }
     ofPopMatrix();
     
+    const ofPoint pos = rect.getPosition() * scale;
+    
     if (isMainDisplay(display_id)) {
       ofDrawBitmapStringHighlight("Main",
-                    rect.getPosition() * scale,
-                    ofColor::red,
-                    ofColor::white);
+                                  pos,
+                                  ofColor::red,
+                                  ofColor::white);
     }
     
     ofSetColor(255);
-    ofDrawBitmapString(ofToString(display_id), rect.getPosition()*scale+20);
+    ofDrawBitmapString(ofToString(display_id), pos.x+20, pos.y+20);
+    ofDrawBitmapString(ofToString(pos), pos.x+20, pos.y+20);
   };
   
-  const vector<unsigned int> display_ids = getDisplayIds();
+  const std::vector<unsigned int> display_ids = getDisplayIds();
   
   ofPushStyle();
   ofTranslate(x, y);
   for_each(begin(display_ids),
-       end(display_ids),
-       draw);
+           end(display_ids),
+           draw);
   ofPopStyle();
 }
 
 
-#pragma mark -
-#pragma mark private
-
-bool ofxDisplayLayout::isValidDirection(ofxDisplayLayout::Direction direction) const {
-  return UNKNOWN_DIRECTION < direction || direction < NUM_DIRECTIONS;
-}
-
-bool ofxDisplayLayout::isMainDisplay(unsigned int display_id) const {
-  return CGMainDisplayID() == display_id;
-}
-
-bool ofxDisplayLayout::hasDisplay(unsigned int display_id) const {
-  
-  const vector<unsigned int> display_ids = getDisplayIds();
-  
-  return find(begin(display_ids),
-        end(display_ids),
-        display_id) != end(display_ids);
-}
-
-ofRectangle ofxDisplayLayout::getDisplayBounds(unsigned int display_id) const {
-  
-  const CGRect bounds = CGDisplayBounds(display_id);
-  
-  return ofRectangle(bounds.origin.x,
-             bounds.origin.y,
-             bounds.size.width,
-             bounds.size.height);
-}
+#pragma mark - private
 
 vector<unsigned int> ofxDisplayLayout::getDisplayIds() const {
   
@@ -230,7 +177,7 @@ vector<unsigned int> ofxDisplayLayout::getDisplayIds() const {
   CGDisplayCount num_displays;
   
   CGError err = CGGetOnlineDisplayList(num_max_displays, displays, &num_displays);
-  vector<unsigned int> ids(num_displays);
+  std::vector<unsigned int> ids(num_displays);
   
   if (err != kCGErrorSuccess) {
     ofLogError() << "faild to get display ids.";
@@ -243,40 +190,31 @@ vector<unsigned int> ofxDisplayLayout::getDisplayIds() const {
   return ids;
 }
 
-size_t ofxDisplayLayout::getNumDisplay() const {
-  return getDisplayIds().size();
-}
-
-// see also: Quartz Display Services Reference
-// https://developer.apple.com/library/mac/documentation/GraphicsImaging/Reference/Quartz_Services_Ref/index.html
-bool ofxDisplayLayout::arrange(vector<unsigned int> display_ids,
+bool ofxDisplayLayout::arrange(std::vector<unsigned int> display_ids,
                                ofxDisplayLayout::Direction direction) const {
+  
+  // see also: Quartz Display Services Reference
+  // https://developer.apple.com/library/mac/documentation/GraphicsImaging/Reference/Quartz_Services_Ref/index.html
   
   if (!isValidDirection(direction)) {
     ofLogError() << __PRETTY_FUNCTION__ << " invalid direction " << direction << "is passed. aborted";
     return false;
   }
   
-  /*!
-    estimating the new origin for each display
-   */
   struct Display {
-    
     Display(unsigned int _id, ofRectangle _bounds, ofPoint _origin)
     : id(_id)
     , old_bounds(_bounds)
     , new_origin(_origin)
     {}
-    
     unsigned int id;
     ofRectangle old_bounds;
     ofPoint new_origin;
   };
   
-  vector<Display> displays;
+  std::vector<Display> displays;
   
-  for (int i=0; i<display_ids.size(); i++)
-  {
+  for (int i=0; i<display_ids.size(); i++) {
     const unsigned int id = display_ids.at(i);
     const ofRectangle bounds = getDisplayBounds(id);
     
@@ -300,13 +238,9 @@ bool ofxDisplayLayout::arrange(vector<unsigned int> display_ids,
       }
     }
     
-    displays.emplace_back( Display(id, bounds, origin) );
+    displays.emplace_back(Display(id, bounds, origin));
   }
   
-  
-  /*!
-    arrange!
-   */
   auto change_display_order = [](Display &display) {
     
     CGDisplayErr err;
@@ -315,31 +249,28 @@ bool ofxDisplayLayout::arrange(vector<unsigned int> display_ids,
     CGBeginDisplayConfiguration(&configRef);
     
     err = CGConfigureDisplayOrigin(configRef,
-                     (CGDirectDisplayID)display.id,
-                     display.new_origin.x,
-                     display.new_origin.y);
+                                   static_cast<CGDirectDisplayID>(display.id),
+                                   display.new_origin.x,
+                                   display.new_origin.y);
     
     if (err != kCGErrorSuccess) {
-      
+      CGCancelDisplayConfiguration(configRef);
       ofLogError() << "display order arrangement falild on display: " << display.id;
       ofLogError() << "reason: " << err << endl;
-      CGCancelDisplayConfiguration(configRef);
       return false;
     }
-    
     else {
-      ofLogVerbose()
-        << "Succeeded! Display " << display.id << " is set to the origin "
-        << "{x:" << display.new_origin.x << ", y:" << display.new_origin.y << "}";
       CGCompleteDisplayConfiguration(configRef, kCGConfigureForSession);
+      ofLogVerbose()
+      << "Succeeded! Display " << display.id << " is set to the origin "
+      << "{x:" << display.new_origin.x << ", y:" << display.new_origin.y << "}";
     }
   };
   
   try {
     for_each(begin(displays),
-         end(displays),
-         change_display_order);
-    
+             end(displays),
+             change_display_order);
   }
   catch (const exception& e) {
     ofLogError() << "Error: " << e.what();
